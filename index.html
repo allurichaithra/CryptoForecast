@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hybrid ARIMA–LSTM–XGBoost Ensemble for Cryptocurrency Forecasting</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <nav class="navbar" id="top">
+      <div class="logo">CryptoForecast</div>
+      <ul class="nav-links">
+        <li><a href="#market">Market Forecasts</a></li>
+        <li><a href="#overview">Overview</a></li>
+        <li><a href="#methodology">Methodology</a></li>
+        <li><a href="#data">Data &amp; Experiments</a></li>
+        <li><a href="#results">Results</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul>
+    </nav>
+
+    <section id="market" class="section">
+        <div class="section-header">
+          <h2>Cryptocurrency Price Predictions and Forecasts</h2>
+          <p>
+            A clean, ad-free summary of example cryptocurrency forecasts across
+            multiple time horizons. This layout is inspired by real forecasting
+            sites but backed conceptually by a hybrid ARIMA–LSTM–XGBoost model.
+          </p>
+        </div>
+        <div class="summary-grid">
+          <div class="summary-card">
+            <p class="summary-label">Total Market Cap</p>
+            <p class="summary-value" id="total-market-cap">--</p>
+            <p class="summary-change change-down" id="market-cap-change">--</p>
+          </div>
+          <div class="summary-card">
+            <p class="summary-label">Next-Year Projection</p>
+            <p class="summary-value" id="next-year-projection">--</p>
+            <p class="summary-change change-up" id="projection-change">--</p>
+          </div>
+          <div class="summary-card">
+            <p class="summary-label">Market Sentiment</p>
+            <p class="summary-value sentiment-bearish" id="market-sentiment">--</p>
+            <p class="summary-note" id="sentiment-score">--</p>
+          </div>
+          <div class="summary-card">
+            <p class="summary-label">Fear &amp; Greed Index</p>
+            <p class="summary-value sentiment-fear" id="fear-greed-value">--</p>
+            <p class="summary-note" id="fear-greed-score">--</p>
+          </div>
+        </div>
+        <div class="chart-panel">
+          <div class="chart-text">
+            <h3>Crypto Market Cap Prediction</h3>
+            <p>
+              The hybrid ensemble analyzes historical market capitalization,
+              volatility, and technical indicators to estimate the potential path
+              for the coming year. The chart shows observed market trends (solid line)
+              with projected trajectory (dotted line) based on ensemble forecasts.
+            </p>
+          </div>
+          <div class="chart-visual">
+            <canvas id="market-cap-chart" width="600" height="220" style="max-width: 100%; height: auto;"></canvas>
+          </div>
+        </div>
+        <div class="market-card">
+          <div class="market-toolbar">
+            <div class="market-info">
+              <span class="badge" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white;">Live</span>
+              <span class="market-text">
+                Real-time forecasts powered by hybrid ARIMA-LSTM-XGBoost ensemble model
+                trained on historical cryptocurrency data.
+              </span>
+            </div>
+            <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+              <button id="retrain-btn" style="
+                padding: 10px 20px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                border: none;
+                border-radius: 6px;
+                cursor: pointer;
+                font-weight: 600;
+                font-size: 14px;
+                transition: transform 0.2s, opacity 0.2s;
+              " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                Retrain Models
+              </button>
+              <span id="last-updated-badge" style="
+                padding: 8px 14px;
+                background: #f3f4f6;
+                border-radius: 6px;
+                font-size: 12px;
+                color: #6b7280;
+                font-weight: 500;
+              ">
+                Last updated: --
+              </span>
+              <span id="data-range-badge" style="
+                padding: 8px 14px;
+                background: #f3f4f6;
+                border-radius: 6px;
+                font-size: 12px;
+                color: #6b7280;
+                font-weight: 500;
+              ">
+                Training data: --
+              </span>
+            </div>
+          </div>
+          <div class="table-scroll">
+          <table class="crypto-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Name</th>
+                  <th>Price</th>
+                  <th>5D Forecast</th>
+                  <th>1M Forecast</th>
+                  <th>3M Forecast</th>
+                  <th>6M Forecast</th>
+                  <th>1Y Forecast</th>
+                </tr>
+            </thead>
+            <tbody id="forecast-table-body">
+              <tr>
+                <td colspan="8">Loading forecasts...</td>
+              </tr>
+            </tbody>
+            </table>
+          </div>
+        </div>
+    </section>
+
+    <main>
+
+      <section id="overview" class="section">
+        <div class="section-header">
+          <h2>Project Overview</h2>
+          <p>
+            Cryptocurrencies exhibit high volatility, non-linearity, and noisy patterns
+            that make forecasting difficult. This project proposes a hybrid ensemble
+            model that leverages the strengths of ARIMA, LSTM, and XGBoost to improve
+            one-step-ahead price prediction performance.
+          </p>
+        </div>
+        <div class="grid two-cols">
+          <div class="card">
+            <h3>Problem Statement</h3>
+            <p>
+              Traditional time-series models struggle with the complex, non-stationary
+              nature of cryptocurrency markets. Pure deep learning models, while
+              flexible, may overfit or ignore linear structures. The goal is to design
+              a hybrid ensemble that can capture both linear and non-linear dependencies
+              in crypto price series.
+            </p>
+          </div>
+          <div class="card">
+            <h3>Objectives</h3>
+            <ul class="bullets">
+              <li>Model the linear component of price series using ARIMA.</li>
+              <li>Capture complex non-linear and long-term patterns using LSTM.</li>
+              <li>Use XGBoost on engineered features and residuals to refine predictions.</li>
+              <li>Combine model outputs into a unified ensemble forecast.</li>
+              <li>Evaluate and compare ensemble performance against individual models.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section id="forecast" class="section alt">
+        <div class="section-header">
+          <h2>Cryptocurrency Forecasts</h2>
+          <p>
+            This section highlights the actual forecasting performance of the hybrid
+            ARIMA–LSTM–XGBoost ensemble on cryptocurrency closing prices. Run the Python
+            code to generate the plots and metrics, then showcase them here.
+          </p>
+        </div>
+        <div class="grid two-cols">
+          <div class="card chart-card">
+            <h3>Actual vs Predicted Price</h3>
+            <p>
+              The chart below shows the comparison between actual cryptocurrency prices
+              and the ensemble model predictions on the test set. The hybrid model combines
+              ARIMA, LSTM, and XGBoost to capture both linear trends and non-linear patterns.
+            </p>
+            <div class="chart-wrapper">
+              <img
+                id="forecast-chart"
+                src="outputs/forecast_comparison.png"
+                alt="Actual vs predicted cryptocurrency closing prices"
+                onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
+                style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);"
+              />
+              <div class="chart-caption" style="display: none; padding: 20px; background: #f8f9fa; border-radius: 8px; text-align: center;">
+                <p style="margin: 0; color: #666;">
+                  Chart not loaded. Run <code style="background: #e9ecef; padding: 2px 6px; border-radius: 4px;">python train.py</code> 
+                  to generate the forecast comparison plot.
+                </p>
+              </div>
+            </div>
+            <p id="chart-timestamp" style="text-align: center; margin-top: 10px; font-size: 12px; color: #6b7280;">
+              Chart updates when models are retrained
+            </p>
+          </div>
+          <div class="card">
+            <h3>Model Performance Snapshot</h3>
+            <p>
+              The table below is a template. Replace the placeholders with values from
+              <code>outputs/metrics.csv</code> to emphasize the forecasting accuracy of
+              each model and the hybrid ensemble.
+            </p>
+            <div class="table-wrapper">
+              <table class="metrics-table">
+                <thead>
+                  <tr>
+                    <th>Model</th>
+                    <th>RMSE</th>
+                    <th>MAE</th>
+                    <th>MAPE (%)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td colspan="4" style="text-align: center; padding: 20px; color: #9ca3af;">--</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="methodology" class="section alt">
+        <div class="section-header">
+          <h2>Methodology</h2>
+          <p>
+            The hybrid framework consists of three base learners—ARIMA, LSTM, and
+            XGBoost—followed by an ensemble layer that combines their predictions to
+            produce a final forecast.
+          </p>
+        </div>
+        <div class="grid three-cols">
+          <div class="card">
+            <h3>ARIMA Component</h3>
+            <p>
+              The ARIMA model captures the linear structure and potential seasonality in
+              the cryptocurrency closing price series. After differencing to achieve
+              stationarity, optimal (p, d, q) parameters are selected using information
+              criteria, and residual diagnostics are performed to validate the model.
+            </p>
+          </div>
+          <div class="card">
+            <h3>LSTM Component</h3>
+            <p>
+              The LSTM network is trained on sliding windows of historical prices to
+              learn non-linear temporal dependencies. The architecture typically
+              includes one or more LSTM layers followed by dense layers, optimized using
+              mean squared error loss and early stopping to prevent overfitting.
+            </p>
+          </div>
+          <div class="card">
+            <h3>XGBoost Component</h3>
+            <p>
+              XGBoost is trained on a feature set derived from technical indicators
+              (moving averages, returns, volatility, etc.) and, optionally, on residuals
+              from the ARIMA and LSTM models. It learns complex feature interactions and
+              serves as a powerful correction layer that reduces remaining forecast
+              errors.
+            </p>
+          </div>
+        </div>
+        <div class="ensemble-diagram card">
+          <h3>Ensemble Strategy</h3>
+          <p>
+            The final prediction is obtained by combining the individual model
+            forecasts. In this project, a simple weighted average is used as the
+            ensemble mechanism:
+          </p>
+          <pre class="equation">
+Forecast = 0.1 · ARIMA + 0.4 · LSTM + 0.5 · XGBoost
+          </pre>
+          <p>
+            The weights are tuned on validation data to minimize forecasting error
+            metrics such as RMSE and MAPE.
+          </p>
+        </div>
+      </section>
+
+      <section id="data" class="section">
+        <div class="section-header">
+          <h2>Data &amp; Experiments</h2>
+          <p>
+            The dataset consists of historical OHLCV (Open, High, Low, Close, Volume)
+            records for a selected cryptocurrency trading pair. The data is split into
+            training, validation, and test sets to enable fair model comparison.
+          </p>
+        </div>
+        <div class="grid two-cols">
+          <div class="card">
+            <h3>Data Preprocessing</h3>
+            <ul class="bullets">
+              <li>Collect historical OHLCV data from a crypto exchange or API.</li>
+              <li>Handle missing values and remove obvious outliers.</li>
+              <li>Normalize or scale features for LSTM and XGBoost models.</li>
+              <li>Create supervised learning sequences using sliding windows.</li>
+              <li>Split data into training, validation, and test sets chronologically.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Experimental Setup</h3>
+            <ul class="bullets">
+              <li>Train separate ARIMA, LSTM, and XGBoost models.</li>
+              <li>Tune hyperparameters using validation data.</li>
+              <li>Evaluate models using RMSE, MAE, and MAPE.</li>
+              <li>Compare baseline models against the hybrid ensemble.</li>
+              <li>Visualize actual vs. predicted closing prices on the test set.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section id="results" class="section alt">
+        <div class="section-header">
+          <h2>Results &amp; Discussion</h2>
+          <p>
+            This section summarizes the comparative performance of individual models
+            and the hybrid ensemble. Replace the placeholder text below with your
+            actual experimental results and plots once you have run the code.
+          </p>
+        </div>
+        <div class="grid two-cols">
+          <div class="card">
+            <h3>Quantitative Results</h3>
+            <p>
+              The hybrid ARIMA–LSTM–XGBoost ensemble demonstrates competitive performance 
+              across multiple error metrics. Results from training on Bitcoin historical data:
+            </p>
+            <ul class="bullets">
+              <li style="color: #9ca3af;">--</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Qualitative Analysis</h3>
+            <p>
+              The ensemble model tends to track sudden price movements more closely
+              while maintaining stable predictions during low-volatility periods. ARIMA
+              effectively models the underlying trend, LSTM captures non-linear
+              patterns, and XGBoost corrects residual errors, resulting in a more
+              robust forecast.
+            </p>
+            <p>
+              You can embed matplotlib or plotly figures generated by the Python code
+              (saved as images) into this section to visually support your analysis.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section id="contact" class="section">
+        <div class="section-header">
+          <h2>About &amp; Contact</h2>
+          <p>
+            Customize this section with your personal details (name, institution,
+            degree program, and any contact information you wish to share).
+          </p>
+        </div>
+        <div class="card contact-card">
+          <h3>Project Information</h3>
+          <ul class="bullets">
+            <li><strong>Project Title:</strong> Hybrid ARIMA–LSTM–XGBoost Ensemble for Cryptocurrency Forecasting</li>
+            <li><strong>Domain:</strong> Time-Series Analysis, Machine Learning, Deep Learning, Financial Forecasting</li>
+            <li><strong>Programming Language:</strong> Python (backend modeling), HTML/CSS/JavaScript (frontend)</li>
+          </ul>
+          <h3>Your Details</h3>
+          <ul class="bullets">
+            <!-- <li><strong>Name:</strong> Alluri Chaithra</li> -->
+            <li><strong>Institution:</strong> SR University</li>
+            <li><strong>Program:</strong> B.Tech [CSE]</li>
+          </ul>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p>
+        &copy; <span id="year"></span> Hybrid ARIMA–LSTM–XGBoost Ensemble for Cryptocurrency Forecasting.
+        All rights reserved.
+      </p>
+      <a href="#top" class="back-to-top">Back to top ↑</a>
+    </footer>
+
+    <script src="script.js"></script>
+  </body>
+  </html>
+
+
